@@ -13,7 +13,8 @@ def greet_user(bot, update):
     mytext = """Привет {}!
 Понимаю команду: {} 
 Созвездие планеты: {} 
-    """.format(update.message.chat.first_name, '/start', '/planet')
+Посчитать количество слов: {}
+    """.format(update.message.chat.first_name, '/start', '/planet', '/wordcount')
 
     logging.info('User {} pressed /start'.format(update.message.chat.username))
 
@@ -73,12 +74,64 @@ def get_constellation(bot, update, args):
         result = ephem.constellation(planet)
         update.message.reply_text('{} is in constellation of {}'.format(args[0], result[1]))    
 
+def words_number(bot, update, args):
+    print(args)
+    #print(update)
+    
+    if args == []:
+        update.message.reply_text('Ничего не ввел')
+    else:
+        last_word = args[len(args)-1]
+        first_symbol = args[0][0]
+        last_symbol = last_word[len(last_word)-1]
+        if first_symbol != '"' or last_symbol != '"':
+            update.message.reply_text('Введи текст в двойных кавычках')
+        else:
+            num_of_words = len(args) - args.count('-')
+            update.message.reply_text('Кол-во слов - {}'.format(num_of_words))
+
+    
+def calculate(bot, update):
+    operations = ['+','-','*','/']
+    user_input = update.message.text
+    
+
+    if user_input[len(user_input)-1] == "=":
+        user_input = user_input[:-1]
+        if (user_input[:1] in operations) or (user_input[-1:] in operations) or (' ' in user_input) or (user_input == ''):
+            update.message.reply_text("Введите числа или уберите пробелы")
+        else:
+            try:
+                if(user_input.find('+') != -1):
+                    first_number = int(user_input.split('+')[0])
+                    second_number = int(user_input.split('+')[1])
+                    update.message.reply_text(first_number + second_number)
+                elif (user_input.find('-') != -1):
+                    first_number = int(user_input.split('-')[0])
+                    second_number = int(user_input.split('-')[1])
+                    update.message.reply_text(first_number - second_number)
+                elif (user_input.find('*') != -1):
+                    first_number = int(user_input.split('*')[0])
+                    second_number = int(user_input.split('*')[1])
+                    update.message.reply_text(first_number * second_number)
+                elif (user_input.find('/') != -1):
+                    first_number = int(user_input.split('/')[0])
+                    second_number = int(user_input.split('/')[1])
+                    update.message.reply_text(first_number / second_number)
+            except(ZeroDivisionError):
+                update.message.reply_text('Деление на 0')
+
+        sign_id = user_input.find()
+    else:
+        update.message.reply_text(user_input)
 
 def main():
     updater = Updater(settings.TELEGRAM_API_KEY)
  
     updater.dispatcher.add_handler(CommandHandler("start", greet_user))
     updater.dispatcher.add_handler(CommandHandler("planet", get_constellation, pass_args=True))
+    updater.dispatcher.add_handler(CommandHandler("wordcount", words_number, pass_args=True))
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, calculate))
     #updater.dispatcher.add_handler(MessageHandler(Filters.text, chat))
     
     updater.start_polling()
